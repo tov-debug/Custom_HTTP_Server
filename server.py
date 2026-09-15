@@ -7,14 +7,29 @@ client_sock, client_add = server_sock.accept()
 
 data = client_sock.recv(1024)
 #print("200 ok")
-print(data)
+#print(data)
 str_data = data.decode('utf-8', errors= 'ignore')
 print(str_data)
 request_line , separator, rest = str_data.partition('\r\n') 
 request_type,path, client_proto = request_line.split(' ')
-print("method:", request_type)
-print("path:", path)
-print("version:", client_proto)
+#print("method:", request_type)
+#print("path:", path)
+#print("version:", client_proto)
+
+headers_lines = rest.split('\r\n')
+
+print(headers_lines)
+
+headers = {}
+for line in headers_lines:
+    if not line:
+        break
+
+    name, value = line.split(':',1)
+    value = value.strip()
+    headers[name] = value
+print(headers)
+print(headers["User-Agent"])
 
 
 
