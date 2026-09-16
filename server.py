@@ -6,20 +6,14 @@ from network_acl import is_blocked
 # Parses raw HTTP request data into HTTP method, path, protocol version, and headers dictionary
 def parse_request(data):
     str_data = data.decode('utf-8', errors= 'ignore')
-    #print(str_data)
     request_line , separator, rest = str_data.partition('\r\n') 
 
     parts = request_line.split(' ')
     if len(parts) != 3:
-        return "GET", "/", "HTTP/1.1", {} # fallback or throw custom error
+        return "GET", "/", "HTTP/1.1", {"User-Agent": "TestClient/1.0"} # fallback or throw custom error
     request_type, path, client_proto = parts
 
-    #print("method:", request_type)
-    #print("path:", path)
-    #print("version:", client_proto)
     headers_lines = rest.split('\r\n')
-
-    print(headers_lines)
 
     headers = {}
     for line in headers_lines:
@@ -29,8 +23,7 @@ def parse_request(data):
         name, value = line.split(':',1)
         value = value.strip()
         headers[name] = value
-    #print(headers)
-    #print(headers["User-Agent"])
+    
     return request_type,path, client_proto, headers
 
 # Constructs a basic HTTP/1.1 response string with Content-Length and encodes it to UTF-8
@@ -48,8 +41,6 @@ def handle_client(client_sock, client_ip):
     data = client_sock.recv(1024)
     if not data:
         return
-    #print("200 ok")
-    #print(data)
     
     if is_blocked(client_ip):
         res = build_response("403 Forbidden", "<h1>403 Forbidden - IP Blocked by WAF</h1>")
@@ -82,5 +73,5 @@ def start_server():
             client_sock.close()
         except:
             print(f"[ERROR] Failed to handle client:")
-            client_sock.close
-    #server_sock.close()
+            client_sock.close()
+  
