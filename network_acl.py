@@ -1,9 +1,18 @@
-BLOCKED_SUBNETS = [
-    "192.168.1.0/24", #local
-    "10.0.0.0/8" #corporate
-    #can add more
+BLOCKED_SUBNETS = []
 
-]
+#Collect the blocked subnets from a given file
+def load_blacklist(filepath):
+    global BLOCKED_SUBNETS
+
+    try:
+        with open(filepath, 'r') as f:
+            #go over every line and ignore empty ones
+            BLOCKED_SUBNETS = [line.strip() for line in f if line.strip()]
+
+        print(f"[SYSTEM] loaded {len(BLOCKED_SUBNETS)} subnets from {filepath}")
+    except Exception as e:
+        print(f"[ERROR] Failed to load blacklist: {e}")
+
 
 # Converts an IPv4 string (e.g., "192.168.1.1") to a 32-bit integer representation
 def ip_to_int(ip:str)->int:
@@ -23,6 +32,9 @@ def is_blocked(client_ip:str)-> bool:
     ip = ip_to_int(client_ip)
 
     for subnet in BLOCKED_SUBNETS:
+        if '/' not in subnet:
+            subnet += '/32' # Default to a single IP mask
+            
         network_ip_str, mask_bits_str = subnet.split('/')
 
         network_ip = ip_to_int(network_ip_str)

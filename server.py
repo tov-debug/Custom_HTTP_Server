@@ -6,9 +6,14 @@ from network_acl import is_blocked
 # Parses raw HTTP request data into HTTP method, path, protocol version, and headers dictionary
 def parse_request(data):
     str_data = data.decode('utf-8', errors= 'ignore')
-    print(str_data)
+    #print(str_data)
     request_line , separator, rest = str_data.partition('\r\n') 
-    request_type,path, client_proto = request_line.split(' ')
+
+    parts = request_line.split(' ')
+    if len(parts) != 3:
+        return "GET", "/", "HTTP/1.1", {} # fallback or throw custom error
+    request_type, path, client_proto = parts
+
     #print("method:", request_type)
     #print("path:", path)
     #print("version:", client_proto)
@@ -66,13 +71,16 @@ def handle_client(client_sock, client_ip):
 # Initializes and runs the TCP socket server on 127.0.0.1:8085 listening for incoming requests
 def start_server():
     server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_sock.bind(('127.0.0.1', 8085 ))
+    server_sock.bind(('0.0.0.0', 8085 ))
     server_sock.listen(1)
 
     while True:
         client_sock, client_add = server_sock.accept()
         client_ip = client_add[0] # the ip address of this client
-        handle_client(client_sock, client_ip)
-        
-        client_sock.close()
+        try:
+            handle_client(client_sock, client_ip)
+            client_sock.close()
+        except:
+            print(f"[ERROR] Failed to handle client:")
+            client_sock.close
     #server_sock.close()
